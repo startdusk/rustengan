@@ -1,6 +1,6 @@
 use anyhow::{bail, Context};
 use serde::{Deserialize, Serialize};
-use std::io::Write;
+use std::io::{StdoutLock, Write};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Message {
@@ -41,41 +41,39 @@ struct EchoNode {
 }
 
 impl EchoNode {
-    pub fn step(
-        &mut self,
-        input: Message,
-        output: &mut std::io::StdoutLock,
-    ) -> anyhow::Result<()> {
+    pub fn step(&mut self, input: Message, output: &mut StdoutLock) -> anyhow::Result<()> {
         match input.body.payload {
             Payload::Init { .. } => {
                 let reply = Message {
-                    src: input.src,
-                    dst: input.dst,
+                    src: input.dst,
+                    dst: input.src,
                     body: Body {
                         id: Some(self.id),
                         in_reply_to: input.body.id,
                         payload: Payload::InitOk,
                     },
                 };
-                serde_json::to_writer(&mut *output, &reply).context("serialize response to init")?;
+                serde_json::to_writer(&mut *output, &reply)
+                    .context("serialize response to init")?;
                 output.write_all(b"\n").context("write trailing newline")?;
                 self.id += 1;
             }
-            Payload::InitOk => bail!("received init_ok message"),
             Payload::Echo { echo } => {
                 let reply = Message {
-                    src: input.src,
-                    dst: input.dst,
+                    src: input.dst,
+                    dst: input.src,
                     body: Body {
                         id: Some(self.id),
                         in_reply_to: input.body.id,
                         payload: Payload::EchoOk { echo },
                     },
-                };            
-                serde_json::to_writer(&mut *output, &reply).context("serialize response to echo")?;
+                };
+                serde_json::to_writer(&mut *output, &reply)
+                    .context("serialize response to echo")?;
                 output.write_all(b"\n").context("write trailing newline")?;
                 self.id += 1;
             }
+            Payload::InitOk { .. } => bail!("received init_ok message"),
             Payload::EchoOk { .. } => {}
         }
         Ok(())
@@ -83,7 +81,6 @@ impl EchoNode {
 }
 
 fn main() -> anyhow::Result<()> {
-    
     let stdin = std::io::stdin().lock();
     let inputs = serde_json::Deserializer::from_reader(stdin).into_iter::<Message>();
 
