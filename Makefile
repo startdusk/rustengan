@@ -12,4 +12,9 @@ fmt:
 
 .PHONY: echo
 echo:
-	@./maelstrom/maelstrom test -w echo --bin ./target/debug/rustengan --node-count 1 --time-limit 10 
+	@./maelstrom/maelstrom test -w echo --bin ./target/debug/echo --node-count 1 --time-limit 10 
+
+# for debugging maelstrom
+.PHONY: serve
+serve:
+	@./maelstrom/maelstrom serve
