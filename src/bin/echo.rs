@@ -8,16 +8,9 @@ use std::io::{StdoutLock, Write};
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 enum Payload {
-    Echo {
-        echo: String,
-    },
-    EchoOk {
-        echo: String,
-    },
-    Init {
-        node_id: String,
-        node_ids: Vec<String>,
-    },
+    Echo { echo: String },
+    EchoOk { echo: String },
+    Init(rustengan::Init),
     InitOk,
 }
 
@@ -25,7 +18,11 @@ struct EchoNode {
     id: usize,
 }
 
-impl Node<Payload> for EchoNode {
+impl Node<(), Payload> for EchoNode {
+    fn from_init(_state: (), _init: rustengan::Init) -> anyhow::Result<Self> {
+        Ok(EchoNode { id: 1 })
+    }
+
     fn step(&mut self, input: Message<Payload>, output: &mut StdoutLock) -> anyhow::Result<()>
     where
         Payload: DeserializeOwned,
@@ -69,5 +66,5 @@ impl Node<Payload> for EchoNode {
 }
 
 fn main() -> anyhow::Result<()> {
-    main_loop(EchoNode { id: 0 })
+    main_loop::<_, EchoNode, _>(())
 }
