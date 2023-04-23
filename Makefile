@@ -22,11 +22,12 @@ unique-ids:
 
 .PHONY: broadcast
 broadcast: 
+# 单节点广播
 	@./maelstrom/maelstrom test -w broadcast --bin ./target/debug/broadcast --node-count 1 --time-limit 20 --rate 10
-
-.PHONY: mbroadcast
-mbroadcast:
+# 多节点广播
 	@./maelstrom/maelstrom test -w broadcast --bin ./target/debug/broadcast --node-count 5 --time-limit 20 --rate 10
+# 多节点广播 - 网络分区
+	@./maelstrom/maelstrom test -w broadcast --bin ./target/debug/broadcast --node-count 5 --time-limit 20 --rate 10 --nemesis partition
 
 # for debugging maelstrom
 .PHONY: serve
