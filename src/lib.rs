@@ -140,7 +140,7 @@ where
     }
 
     jh.join()
-        .expect("stdin thread paniced")
+        .expect("stdin thread panicked")
         .context("stdin thread err")?;
 
     Ok(())
